@@ -1,13 +1,13 @@
 import { useContext, useEffect, useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import styled from "styled-components";
-import { userToken } from "../App";
+import { userInfo } from "../../App";
 import axios from "axios";
 
 export default function SignInPage() {
     const {REACT_APP_API_URL}=process.env;
-    const {token, setToken}=useContext(userToken);
     const [form, setForm]=useState({email: '', password: ''});
+    const { user, setUser}=useContext(userInfo);
     const navigate=useNavigate();
 
     // useEffect(async ()=>{
@@ -25,7 +25,8 @@ export default function SignInPage() {
         try {
             const resp=await axios.post(`${REACT_APP_API_URL}/login`,form);
             console.log(resp);
-            setToken(resp.data.token);
+            setUser(resp.data);
+            localStorage.setItem('')
             navigate('/home');
         } catch (err) {
             if(err.response.status===404) alert('Email não cadastrado');
@@ -37,7 +38,7 @@ export default function SignInPage() {
     return (
         <Page>
             <Container>
-                <h1>MyWallet</h1>
+                <h1 onClick={()=>navigate('/home')}>MyWallet</h1>
                 <CustomForm onSubmit={submitHandler}>
                     <input type="email" onChange={formChangeHandler} value={form.email} placeholder="E-mail" name="email" required />
                     <input type="password" onChange={formChangeHandler} value={form.password} placeholder="Senha" name="password" required />
