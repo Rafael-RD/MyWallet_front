@@ -22,12 +22,8 @@ export default function SignUpPage() {
             alert('Senhas não coincidem')
             return;
         }
-        console.log(form);
-        console.log(REACT_APP_API_URL);
         try{
             const resp = await axios.post(`${REACT_APP_API_URL}/sign-up`, {name: form.name, email: form.email, password: form.password});
-            console.log('deu ');
-            console.log(resp);
             navigate('/');
         }
         catch(err){

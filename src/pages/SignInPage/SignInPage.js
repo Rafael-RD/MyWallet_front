@@ -10,9 +10,18 @@ export default function SignInPage() {
     const { user, setUser}=useContext(userInfo);
     const navigate=useNavigate();
 
-    // useEffect(async ()=>{
-    //     token
-    // },[])
+    useEffect(()=>{
+        (async () => {
+          try {
+            const resp=await axios.get(`${REACT_APP_API_URL}/transactions`,{ headers: { Authorization: `Bearer ${user.token}` } });
+            navigate('/home')
+          } catch (error) {
+            if(error.response.status===401);
+            else console.log(error);
+          }
+        })()
+      },[user])
+    
 
     function formChangeHandler(e){
         const {name, value}=e.target;
@@ -24,21 +33,21 @@ export default function SignInPage() {
         e.preventDefault();
         try {
             const resp=await axios.post(`${REACT_APP_API_URL}/login`,form);
-            console.log(resp);
             setUser(resp.data);
-            localStorage.setItem('')
+            localStorage.setItem('userInfo', JSON.stringify(resp.data));
             navigate('/home');
-        } catch (err) {
-            if(err.response.status===404) alert('Email não cadastrado');
-            else if(err.response.status===401) alert('Senha incorreta');
-            else console.error(err);
+        } catch (error) {
+            console.log(error)
+            if(error.response.status===404) alert('Email não cadastrado');
+            else if(error.response.status===401) alert('Senha incorreta');
+            else console.error(error);
         }
     }
 
     return (
         <Page>
             <Container>
-                <h1 onClick={()=>navigate('/home')}>MyWallet</h1>
+                <h1>MyWallet</h1>
                 <CustomForm onSubmit={submitHandler}>
                     <input type="email" onChange={formChangeHandler} value={form.email} placeholder="E-mail" name="email" required />
                     <input type="password" onChange={formChangeHandler} value={form.password} placeholder="Senha" name="password" required />

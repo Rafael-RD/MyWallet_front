@@ -20,7 +20,7 @@ export default function HomePage() {
         <Page>
             <Container>
                 <CustomHeader>
-                    <span>Olá, Fulano</span>
+                    <span>Olá, {user.name}</span>
                     <IoLogOutOutline onClick={logoff} />
                 </CustomHeader>
                 <TransactionsContainer />

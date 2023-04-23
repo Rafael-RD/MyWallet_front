@@ -2,33 +2,39 @@ import { useContext, useEffect, useState } from "react";
 import styled from "styled-components";
 import { userInfo } from "../../../App";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 export default function TransactionsContainer(){
     const {REACT_APP_API_URL}=process.env;
     const [transactions, setTransactions]=useState([]);
     const [total, setTotal]=useState(0);
     const {user:{token}}=useContext(userInfo);
+    const navigate=useNavigate();
 
     useEffect(()=>{
-        console.log(token);
 
         (async ()=>{
             try {
                 const resp=await axios.get(`${REACT_APP_API_URL}/transactions`,{ headers: { Authorization: `Bearer ${token}` } });
                 let auxtotal=0;
                 resp.data.forEach(e=>{
-                    if(e.type==='inboud') auxtotal+=e.value;
+                    if(e.type==='inbound') auxtotal+=e.value;
                     else if(e.type==='outbound') auxtotal-=e.value;
                 });
                 setTotal(auxtotal);
-                console.log(resp);
                 setTransactions(resp.data);
-            } catch (err) {
-                console.log(err);
+            } catch (error) {
+                if(error.response.status===401) navigate('/');
+                else console.log(error);
             }
         })()
     },[])
-    
+
+    function deleteItem(id){
+        alert('Função ainda não implementada')
+        console.log(id);
+    }
+
     function showTransactions(){
         if(transactions.length===0) return <span>Não há registros de<br />entrada ou saída</span>;
         else return (
@@ -36,7 +42,7 @@ export default function TransactionsContainer(){
                 {transactions.map(e=>{
                     return(
                         <ListItem key={e._id} type={e.type}>
-                            <span>{`${(new Date(e.timestamp).getDate())}/${(new Date(e.timestamp).getMonth())}`}</span><div>{e.description}<span>{e.value.toFixed(2).replace('.',',')}</span></div>
+                            <span>{`${(new Date(e.timestamp).getDate())}/${(new Date(e.timestamp).getMonth())}`}</span><div>{e.description}<span>{e.value.toFixed(2).replace('.',',')}</span></div><button onClick={()=>deleteItem(e._id)}>X</button>
                         </ListItem>
                     )
                 })}
@@ -47,7 +53,7 @@ export default function TransactionsContainer(){
     return(
         <Container>
             {showTransactions()}
-            <Total negative={total<0}>
+            <Total negative={total<0} hide={transactions.length===0}>
                 SALDO
                 <span>{total.toFixed(2).replace('.',',')}</span>
             </Total>
@@ -87,13 +93,24 @@ const ListItem=styled.li`
     display: flex;
     width: 100%;
     margin-bottom: 20px;
+    align-items: center;
 
     &>span{
-        margin-right: 10px;
         font-family: 'Raleway', sans-serif;
         font-weight: 400;
         font-size: 16px;
         color: #c6c6c6;
+    }
+
+    &>button{
+        font-family: 'Raleway', sans-serif;
+        font-weight: 400;
+        font-size: 16px;
+        color: #c6c6c6;
+        outline: none;
+        border: none;
+        background: none;
+        cursor: pointer;
     }
     
     div{
@@ -103,6 +120,7 @@ const ListItem=styled.li`
         font-family: 'Raleway', sans-serif;
         font-style: normal;
         font-weight: 400;
+        margin: 0 10px;
         font-size: 16px;
         color: #000000;
         
@@ -117,7 +135,7 @@ const ListItem=styled.li`
     `;
 
 const Total=styled.div`
-    display: flex;
+    display: ${props=>props.hide?'none':'flex'};
     align-items: center;
     justify-content: space-between;
     width: 100%;
