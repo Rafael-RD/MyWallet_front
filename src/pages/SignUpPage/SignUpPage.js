@@ -26,8 +26,9 @@ export default function SignUpPage() {
             await axios.post(`${REACT_APP_API_URL}/sign-up`, {name: form.name, email: form.email, password: form.password});
             navigate('/');
         }
-        catch(err){
-            console.error(err);
+        catch(error){
+            if(error.response.status===422) alert(error.response.data);
+            console.error(error);
         }
         
     }
