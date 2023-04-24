@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from "react";
-import { Link, Navigate, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { userInfo } from "../../App";
 import axios from "axios";
@@ -13,14 +13,14 @@ export default function SignInPage() {
     useEffect(()=>{
         (async () => {
           try {
-            const resp=await axios.get(`${REACT_APP_API_URL}/transactions`,{ headers: { Authorization: `Bearer ${user.token}` } });
+            await axios.get(`${REACT_APP_API_URL}/transactions`,{ headers: { Authorization: `Bearer ${user.token}` } });
             navigate('/home')
           } catch (error) {
             if(error.response.status===401);
             else console.log(error);
           }
         })()
-      },[user])
+      },[user, REACT_APP_API_URL, navigate])
     
 
     function formChangeHandler(e){

@@ -23,7 +23,7 @@ export default function SignUpPage() {
             return;
         }
         try{
-            const resp = await axios.post(`${REACT_APP_API_URL}/sign-up`, {name: form.name, email: form.email, password: form.password});
+            await axios.post(`${REACT_APP_API_URL}/sign-up`, {name: form.name, email: form.email, password: form.password});
             navigate('/');
         }
         catch(err){

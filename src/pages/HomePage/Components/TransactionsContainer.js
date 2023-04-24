@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState } from "react";
 import styled from "styled-components";
-import { userInfo } from "../../../App";
+import { editInfo, userInfo } from "../../../App";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
@@ -8,8 +8,9 @@ export default function TransactionsContainer() {
     const { REACT_APP_API_URL } = process.env;
     const [transactions, setTransactions] = useState([]);
     const [total, setTotal] = useState(0);
-    const [reload, setReload]=useState(false);
+    const [reload, setReload] = useState(false);
     const { user: { token } } = useContext(userInfo);
+    const { setToEdit } = useContext(editInfo);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -29,18 +30,26 @@ export default function TransactionsContainer() {
                 else console.log(error);
             }
         })()
-    }, [reload])
+    }, [reload, REACT_APP_API_URL, navigate, token])
 
     async function deleteItem(id) {
         const confirmation = window.confirm('Deseja realmente excluir esse item?');
-        try {
-            const respDelete =await axios.delete(`${REACT_APP_API_URL}/transactions`, {data: {id}, headers: { Authorization: `Bearer ${token}` } });
-            if(respDelete.status===200){
-                setReload(true);
+        if (confirmation) {
+            try {
+                const respDelete = await axios.delete(`${REACT_APP_API_URL}/transactions`, { data: { id }, headers: { Authorization: `Bearer ${token}` } });
+                if (respDelete.status === 200) {
+                    setReload(true);
+                }
+            } catch (error) {
+                console.log(error);
             }
-        } catch (error) {
-            console.log(error);
         }
+    }
+
+    function editRedirect(item) {
+        setToEdit(item);
+        if (item.type === 'inbound') navigate('/editar-registro/entrada');
+        else if (item.type === 'outbound') navigate('/editar-registro/saida');
     }
 
     function showTransactions() {
@@ -50,7 +59,9 @@ export default function TransactionsContainer() {
                 {transactions.map(e => {
                     return (
                         <ListItem key={e._id} type={e.type}>
-                            <span>{`${(new Date(e.timestamp).getDate())}/${(new Date(e.timestamp).getMonth())}`}</span><div>{e.description}<span>{e.value.toFixed(2).replace('.', ',')}</span></div><button onClick={() => deleteItem(e._id)}>X</button>
+                            <span>{`${(new Date(e.timestamp).getDate())}/${(new Date(e.timestamp).getMonth())}`}</span>
+                            <div onClick={() => editRedirect(e)} >{e.description}<span>{e.value.toFixed(2).replace('.', ',')}</span></div>
+                            <button onClick={() => deleteItem(e._id)}>X</button>
                         </ListItem>
                     )
                 })}
@@ -76,7 +87,6 @@ const Container = styled.div`
     align-items: center;
     width: 100%;
     height: 75%;
-    /* background-color: blue; */
     padding: 20px 10px;
 
     ul{

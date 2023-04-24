@@ -1,66 +1,56 @@
 import { useContext, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom"
-import { userInfo } from "../../App";
+import { editInfo, userInfo } from "../../App";
 import styled from "styled-components";
 import axios from "axios";
 
-export default function TransactionPage(){
-    const {REACT_APP_API_URL}=process.env;
-    const {type}=useParams();
-    const [form, setForm]=useState({description: '', value: 0});
-    const {user: {token}}=useContext(userInfo);
-    const navigate=useNavigate();
+export default function EditionPage() {
+    const { REACT_APP_API_URL } = process.env;
+    const { type } = useParams();
+    const { user: { token } } = useContext(userInfo);
+    const { toEdit } = useContext(editInfo);
+    const [form, setForm] = useState({ description: toEdit.description, value: toEdit.value });
+    const navigate = useNavigate();
 
-    useEffect(()=>{
-        if(type!=='saida' && type!=='entrada') return navigate('/home');
-        if(!token) navigate('/');
+    useEffect(() => {
+        if (type !== 'saida' && type !== 'entrada') return navigate('/home');
+        if (!token) navigate('/');
     })
 
-    function formChangeHandler(e){
-        const {name, value}=e.target;
-        if(name==='value'){
-            const _value=Number(value);
-            if(isNaN(_value)) return navigate('/home');
-            setForm({...form, [name]: Math.round((_value+Number.EPSILON)*100)/100});
-        }else setForm({...form, [name]: value});
+    function formChangeHandler(e) {
+        const { name, value } = e.target;
+        if (name === 'value') {
+            const _value = Number(value);
+            if (isNaN(_value)) return navigate('/home');
+            setForm({ ...form, [name]: Math.round((_value + Number.EPSILON) * 100) / 100 });
+        } else setForm({ ...form, [name]: value });
     }
 
-    async function formSubmitHandler(e){
+    async function formSubmitHandler(e) {
         e.preventDefault();
-        if(type==='saida'){
-            try{
-                const resp=await axios.post(`${REACT_APP_API_URL}/transactions/send`, form, {headers:{authorization: `Bearer ${token}`}});
-                if(resp.status===201) navigate('/home');
-            }catch(err){
-                console.log(err);
-            }
-        } else if(type==='entrada'){
-            try{
-                const resp=await axios.post(`${REACT_APP_API_URL}/transactions/receive`, form, {headers:{authorization: `Bearer ${token}`}});
-                if(resp.status===201) navigate('/home');
-            }catch(err){
-                console.log(err);
-            }
+        try {
+            const resp = await axios.put(`${REACT_APP_API_URL}/transactions`, { ...form, id: toEdit._id }, { headers: { authorization: `Bearer ${token}` } });
+            if(resp.status===200) navigate('/home');
+        } catch (error) {
+            console.log(error);
         }
-
-        
     }
 
     return (
         <Page>
             <Container>
-                <span>Nova {type==='entrada'?'entrada': 'saída'}</span>
+                <span>Editar {type === 'entrada' ? 'entrada' : 'saída'}</span>
                 <CustomForm onSubmit={formSubmitHandler} >
                     <input type="number" onChange={formChangeHandler} value={form.value} placeholder="Valor" name="value" step='0.01' min='0' required />
                     <input type="text" onChange={formChangeHandler} value={form.description} placeholder="Descrição" name="description" required />
-                    <button>Salvar {type==='entrada'?'entrada': 'saída'}</button>
+                    <button>Atualizar {type === 'entrada' ? 'entrada' : 'saída'}</button>
                 </CustomForm>
             </Container>
         </Page>
     )
 }
 
-const Page=styled.div`
+const Page = styled.div`
     display: flex;
     background-color: #8C11BE;
     height: 100vh;
@@ -68,7 +58,7 @@ const Page=styled.div`
     justify-content: center;
     `;
 
-const Container=styled.div`
+const Container = styled.div`
     display: flex;
     flex-direction: column;
     width: 50%;
